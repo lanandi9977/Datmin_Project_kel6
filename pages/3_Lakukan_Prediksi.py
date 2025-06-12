@@ -11,6 +11,7 @@ st.divider()
 # Ambil semua yang dibutuhkan dari session state
 model_knn = st.session_state.model_knn
 model_nb = st.session_state.model_nb
+model_dt = st.session_state.model_dt # Ambil model Decision Tree
 df_processed = st.session_state.df_processed
 introvert_avg = st.session_state.introvert_avg
 extrovert_avg = st.session_state.extrovert_avg
@@ -27,7 +28,7 @@ with st.form("prediction_form"):
         drained_after_socializing = st.radio("Apakah Anda merasa lelah setelah bersosialisasi?", ("Ya", "Tidak"))
         friends_circle_size = st.slider("Jumlah teman dekat (0-15)", 0, 15, 5)
         post_frequency = st.slider("Frekuensi posting di media sosial (0-10)", 0, 10, 4)
-    
+        
     submit_button = st.form_submit_button(label="✨ Lakukan Prediksi!")
 
 if submit_button:
@@ -45,14 +46,22 @@ if submit_button:
     confidence_nb = proba_nb[0][prediction_nb[0]]
     result_nb = "Introvert" if prediction_nb[0] == 1 else "Extrovert"
 
+    # --- Prediksi dengan Decision Tree (Penambahan Baru) ---
+    prediction_dt = model_dt.predict(input_data)
+    proba_dt = model_dt.predict_proba(input_data)
+    confidence_dt = proba_dt[0][prediction_dt[0]]
+    result_dt = "Introvert" if prediction_dt[0] == 1 else "Extrovert"
+
     st.divider()
     st.subheader("🎉 Hasil Prediksi Anda:")
     
-    col_res1, col_res2 = st.columns(2)
+    col_res1, col_res2, col_res3 = st.columns(3) # Ubah menjadi 3 kolom
     with col_res1:
         st.info(f"**Prediksi Model KNN:** Anda cenderung seorang **{result_knn}** (kepercayaan: {confidence_knn:.0%})")
     with col_res2:
         st.success(f"**Prediksi Model Naive Bayes:** Anda cenderung seorang **{result_nb}** (kepercayaan: {confidence_nb:.0%})")
+    with col_res3: # Kolom baru untuk Decision Tree
+        st.warning(f"**Prediksi Model Decision Tree:** Anda cenderung seorang **{result_dt}** (kepercayaan: {confidence_dt:.0%})") # Menggunakan st.warning untuk warna berbeda
 
     with st.expander("Lihat Perbandingan Profil Anda (Radar Chart)"):
         feature_names = list(extrovert_avg.index)
